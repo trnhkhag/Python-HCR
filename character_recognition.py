@@ -28,7 +28,7 @@ def trigger_function():
     global capture_requested
     capture_requested = True
     print("Chụp ảnh từ camera...")
-    # return {"status": "success", "message": "Chụp màn hình thành công!"}, 200
+    return {"status": "success", "message": "Chụp màn hình thành công!"}, 200
 
 
 # Load model nhận diện ký tự
@@ -38,41 +38,59 @@ word_dict = {0:'0',1:'1',2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',8:'8',9:'9',10:'A',
              31:'V',32:'W',33:'X',34:'Y',35:'Z',36:'a',37:'b',38:'c',39:'d',40:'e',41:'f',42:'g',43:'h',44:'i',45:'j',
              46:'k',47:'l',48:'m',49:'n', 50:'o',51:'p',52:'q',53:'r',54:'s',55:'t',56:'u',57:'v',58:'w',59:'x',60:'y',
              61:'z'}
-
-# Hàm tiền xử lý ảnh
 def preprocess_image(image_path):
     """
-    Tiền xử lý ảnh viết tay để chuẩn bị đầu vào cho mô hình.
-    - Đọc ảnh
-    - Chuyển đổi sang grayscale
-    - Resize về 28x28
-    - Chuyển đổi ảnh sang binary (dùng Otsu Thresholding)
-    - Invert background
-    - Flatten ảnh và chuẩn hóa giá trị pixel về [0, 1]
+    Preprocess a single handwritten character image with padding for CNN recognition.
+    
+    :param image_path: Path to the input image.
+    :return: Preprocessed image ready for CNN input (1, 28, 28, 1).
     """
-    # Đọc ảnh dưới dạng grayscale
-    # img_gray = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-    img_gray = cv2.imread(image_path, 0)
+    # Load the image
+    image = cv2.imread(image_path)
 
-    # Resize ảnh về kích thước 28x28
-    img_gray = cv2.resize(img_gray, (28, 28))
-    
-    # Chuyển đổi ảnh grayscale sang binary (Otsu Thresholding)
-    ret, img_binary=cv2.threshold(img_gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-    
-    # Đảo ngược màu sắc (đổi trắng thành đen và ngược lại)
-    img = cv2.bitwise_not(img_binary)
+    # Convert to grayscale
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # Flatten ảnh
-    value = img.flatten()
-    fl_img = np.array(value)
-    
-    # Flatten ảnh và chuẩn hóa giá trị pixel
-    fl_img = fl_img.astype('float32')
-    
-    # Thêm trục cho phù hợp với đầu vào của mô hình
-    img = np.reshape(fl_img, (1, 28, 28, 1))
-    return img
+    # Apply GaussianBlur to reduce noise
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    # Threshold the image (binary inversion)
+    _, thresh = cv2.threshold(blurred, 127, 255, cv2.THRESH_BINARY_INV)
+
+    # Find the bounding box around the character
+    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if contours:
+        # Select the largest contour (assuming it corresponds to the character)
+        c = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(c)
+
+        # Crop the character region
+        char = thresh[y:y+h, x:x+w]
+    else:
+        # If no contours are found, use the whole image
+        char = thresh
+
+    # Add padding to make the character centered and preserve aspect ratio
+    h, w = char.shape
+    max_dim = max(h, w)
+    padded_char = np.zeros((max_dim, max_dim), dtype=np.uint8)
+    pad_y = (max_dim - h) // 2
+    pad_x = (max_dim - w) // 2
+    padded_char[pad_y:pad_y+h, pad_x:pad_x+w] = char
+
+    # Resize to match model input size (28x28)
+    char = cv2.resize(padded_char, (28, 28))
+
+    # Normalize pixel values to [0, 1]
+    char = char / 255.0
+
+    # Add a channel dimension for CNN input (28, 28, 1)
+    char = np.expand_dims(char, axis=-1)
+
+    # Add batch dimension (1, 28, 28, 1)
+    char = np.expand_dims(char, axis=0)
+
+    return char
 
 # Hàm dự đoán ký tự
 def predict_character(image_path):
