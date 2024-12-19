@@ -4,14 +4,17 @@
 
 
 from pathlib import Path
-
 # from tkinter import *
 # Explicit imports to satisfy Flake8
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
 
 
 OUTPUT_PATH = Path(__file__).parent
+<<<<<<< Updated upstream
 ASSETS_PATH = OUTPUT_PATH / Path(r"D:\Python\HCR\build\assets\frame0")
+=======
+ASSETS_PATH = OUTPUT_PATH / Path(r"F:\Desktop\XuLyAnh\Python-HCR\assets\frame0")
+>>>>>>> Stashed changes
 
 
 def relative_to_assets(path: str) -> Path:
