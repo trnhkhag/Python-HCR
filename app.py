@@ -7,7 +7,7 @@ from pathlib import Path
 
 # from tkinter import *
 # Explicit imports to satisfy Flake8
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
+from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, filedialog
 
 
 OUTPUT_PATH = Path(__file__).parent
@@ -17,6 +17,15 @@ ASSETS_PATH = OUTPUT_PATH / Path(r"D:\Python\Python-HCR\assets\frame0")
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
+def choose_image():
+    global image
+    image = filedialog.askopenfilename(
+        title="Select an Image",
+        filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.bmp;*.gif")]
+    )
+    canvas.itemconfig(tagOrId=image_image_3, file=image)
+
+image = r"assets/frame0/image_3.png"
 
 window = Tk()
 
@@ -90,7 +99,7 @@ button_2 = Button(
     image=button_image_2,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_2 clicked"),
+    command=choose_image,
     relief="flat"
 )
 button_2.place(
@@ -127,7 +136,7 @@ canvas.create_text(
 )
 
 image_image_3 = PhotoImage(
-    file=relative_to_assets("image_3.png"))
+    file=image)
 image_3 = canvas.create_image(
     175.0,
     625.0,
