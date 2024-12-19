@@ -8,15 +8,15 @@ from pathlib import Path
 # from tkinter import *
 # Explicit imports to satisfy Flake8
 from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
+from character_recognition import on_button_1_click
 
 
 OUTPUT_PATH = Path(__file__).parent
-ASSETS_PATH = OUTPUT_PATH / Path(r"D:\Python\HCR\build\assets\frame0")
+ASSETS_PATH = OUTPUT_PATH / Path(r"D:\DHSG\Python\HandWrittingReg\HWR_app\assets\frame0")
 
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
-
 
 window = Tk()
 
@@ -74,7 +74,7 @@ button_1 = Button(
     image=button_image_1,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("button_1 clicked"),
+    command=lambda: on_button_1_click(canvas, image_3, result_text),
     relief="flat"
 )
 button_1.place(
@@ -82,6 +82,21 @@ button_1.place(
     y=105.0,
     width=200.0,
     height=200.0
+)
+
+image_image_3 = canvas.create_image(
+    175.0,
+    625.0,
+    image=None  # Để trống ảnh ban đầu
+)
+
+result_text = canvas.create_text(
+    370.0,
+    530.0,
+    anchor="nw",
+    text="",
+    fill="#FFFFFF",
+    font=("Inter Bold", 24 * -1)
 )
 
 button_image_2 = PhotoImage(
@@ -117,11 +132,11 @@ canvas.create_text(
     font=("Inter Bold", 24 * -1)
 )
 
-canvas.create_text(
+result_text = canvas.create_text(
     398.0,
     598.0,
     anchor="nw",
-    text="A",
+    text="result here!",  # Nội dung mặc định
     fill="#FFFFFF",
     font=("Inter Bold", 24 * -1)
 )
